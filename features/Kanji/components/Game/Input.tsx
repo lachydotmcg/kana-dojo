@@ -204,7 +204,8 @@ const KanjiInputGame = ({
     if (
       e.key === 'Enter' &&
       inputValue.trim().length &&
-      bottomBarState !== 'correct'
+      bottomBarState !== 'correct' &&
+      !justAnsweredRef.current
     ) {
       handleCheck();
     }
@@ -485,4 +486,3 @@ const KanjiInputGame = ({
 };
 
 export default KanjiInputGame;
-

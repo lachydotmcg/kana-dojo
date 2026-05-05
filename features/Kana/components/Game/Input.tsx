@@ -94,6 +94,14 @@ const InputGame = ({ isHidden, isReverse = false }: InputGameProps) => {
     recordCorrect: recordTargetLengthCorrect,
     recordWrong: recordTargetLengthWrong,
   } = useAdaptiveTargetLength();
+  // Ref so buildTargetPair's identity is stable even when targetLength changes.
+  // Without this, a level-up mid-question re-creates buildTargetPair → triggers
+  // useEffect([buildTargetPair]) → sets new pairData while still in 'correct'
+  // state → GameBottomBar freezes the *next* question's answer in the completed tab.
+  const targetLengthRef = useRef(targetLength);
+  useEffect(() => {
+    targetLengthRef.current = targetLength;
+  }, [targetLength]);
 
   const [inputValue, setInputValue] = useState('');
   const [bottomBarState, setBottomBarState] = useState<BottomBarState>('check');
@@ -148,7 +156,7 @@ const InputGame = ({ isHidden, isReverse = false }: InputGameProps) => {
     const promptParts: string[] = [];
     const answerParts: string[] = [];
 
-    for (let i = 0; i < targetLength; i++) {
+    for (let i = 0; i < targetLengthRef.current; i++) {
       const available = sourceArray.filter(char => !used.has(char));
       if (available.length === 0) break;
       const selected = adaptiveSelector.selectWeightedCharacter(available);
@@ -164,8 +172,10 @@ const InputGame = ({ isHidden, isReverse = false }: InputGameProps) => {
       promptParts,
       answerParts,
     };
-  }, [isReverse, selectedRomaji, selectedKana, targetLength, selectedPairs]);
+  }, [isReverse, selectedRomaji, selectedKana, selectedPairs]);
 
+  // Safe: targetLengthRef.current === targetLength at this point (ref initialised above on same render).
+  // eslint-disable-next-line react-hooks/refs
   const [pairData, setPairData] = useState(() => buildTargetPair());
   const correctChar = pairData.correctChar;
   const targetChar = pairData.targetChar;
@@ -431,7 +441,7 @@ const InputGame = ({ isHidden, isReverse = false }: InputGameProps) => {
         onKeyDown={e => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            if (inputValue.trim().length > 0 && bottomBarState !== 'correct') {
+            if (inputValue.trim().length > 0 && bottomBarState !== 'correct' && !justAnsweredRef.current) {
               handleCheck();
             }
           }
@@ -457,4 +467,3 @@ const InputGame = ({ isHidden, isReverse = false }: InputGameProps) => {
 };
 
 export default InputGame;
-
