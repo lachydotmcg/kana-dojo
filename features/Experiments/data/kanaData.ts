@@ -1,5 +1,10 @@
 // Flattened kana data for experiments
-export const allKana = [
+export interface KanaEntry {
+  kana: string;
+  romanji: string;
+}
+
+export const allKana: KanaEntry[] = [
   { kana: 'あ', romanji: 'a' },
   { kana: 'い', romanji: 'i' },
   { kana: 'う', romanji: 'u' },

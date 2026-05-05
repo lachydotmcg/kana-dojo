@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useClick, useCorrect, useError } from '@/shared/hooks/generic/useAudio';
-import { allKana } from '../data/kanaData';
+import { allKana, type KanaEntry } from '../data/kanaData';
 import clsx from 'clsx';
 import { Timer, Zap, Trophy, RefreshCcw } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -13,8 +13,8 @@ export default function FlashRush() {
   const [gameState, setGameState] = useState<'idle' | 'playing' | 'result'>(
     'idle',
   );
-  const [currentKana, setCurrentKana] = useState<any>(null);
-  const [options, setOptions] = useState<any[]>([]);
+  const [currentKana, setCurrentKana] = useState<KanaEntry | null>(null);
+  const [options, setOptions] = useState<KanaEntry[]>([]);
   const [score, setScore] = useState(0);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
   const [lastResult, setLastResult] = useState<'correct' | 'wrong' | null>(
@@ -56,10 +56,10 @@ export default function FlashRush() {
     return () => clearInterval(timer);
   }, [gameState, timeLeft, score]);
 
-  const handleAnswer = (option: any) => {
+  const handleAnswer = (option: KanaEntry) => {
     if (gameState !== 'playing') return;
 
-    if (option.kana === currentKana.kana) {
+    if (currentKana && option.kana === currentKana.kana) {
       playCorrect();
       setScore(s => s + 1);
       setLastResult('correct');

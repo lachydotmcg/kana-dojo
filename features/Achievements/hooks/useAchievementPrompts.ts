@@ -2,6 +2,8 @@ import { useStatsStore } from '@/features/Progress';
 import { useCallback, useState } from 'react';
 import useAchievementStore, { type Achievement } from '../store/useAchievementStore';
 
+type StatsState = ReturnType<typeof useStatsStore.getState>;
+
 export interface AchievementPrompt {
   achievement: Achievement;
   progress: number;
@@ -42,7 +44,7 @@ export const useAchievementPrompts = (): UseAchievementPromptsReturn => {
   }, [achievementStore]);
 
   // Calculate progress for a specific achievement
-  const calculateProgress = useCallback((achievement: Achievement, stats: any): number => {
+  const calculateProgress = useCallback((achievement: Achievement, stats: StatsState): number => {
     const { type, value, additional } = achievement.requirements;
 
     switch (type) {
@@ -58,7 +60,7 @@ export const useAchievementPrompts = (): UseAchievementPromptsReturn => {
         } else if (additional?.contentType === 'katakana') {
           return Math.min((stats.allTimeStats.katakanaCorrect / value) * 100, 100);
         } else if (additional?.contentType === 'kanji') {
-          return Math.min((stats.allTimeStats.kanjiCorrect / value) * 100, 100);
+          return Math.min((Object.values(stats.allTimeStats.kanjiCorrectByLevel).reduce((a, b) => a + b, 0) / value) * 100, 100);
         } else if (additional?.contentType === 'vocabulary') {
           return Math.min((stats.allTimeStats.vocabularyCorrect / value) * 100, 100);
         }
@@ -73,7 +75,7 @@ export const useAchievementPrompts = (): UseAchievementPromptsReturn => {
         return Math.min((accuracy / value) * 100, 100);
 
       case 'sessions':
-        return Math.min((stats.allTimeStats.sessionsCompleted / value) * 100, 100);
+        return Math.min((stats.allTimeStats.totalSessions / value) * 100, 100);
 
       default:
         return 0;
